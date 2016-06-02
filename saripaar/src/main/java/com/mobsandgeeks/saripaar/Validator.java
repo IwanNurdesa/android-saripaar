@@ -147,6 +147,7 @@ public class Validator {
     private Handler mViewValidatedActionHandler;
     private ValidationListener mValidationListener;
     private AsyncValidationTask mAsyncValidationTask;
+    private boolean isValidateHiddenField;
 
     /**
      * Constructor.
@@ -753,7 +754,7 @@ public class Validator {
             for (int i = 0; i < nRules; i++) {
 
                 // Validate only views that are visible and enabled
-                if (view.isShown() && view.isEnabled()) {
+                if (isValidateHiddenField) {
                     Pair<Rule, ViewDataAdapter> ruleAdapterPair = ruleAdapterPairs.get(i);
                     Rule failedRule = validateViewWithRule(
                             view, ruleAdapterPair.first, ruleAdapterPair.second);
@@ -791,6 +792,14 @@ public class Validator {
         }
 
         return new ValidationReport(validationErrors, hasMoreErrors);
+    }
+
+    public boolean isValidateHiddenField() {
+        return isValidateHiddenField;
+    }
+
+    public void setValidateHiddenField(boolean validateHiddenField) {
+        isValidateHiddenField = validateHiddenField;
     }
 
     private Rule validateViewWithRule(final View view, final Rule rule,
