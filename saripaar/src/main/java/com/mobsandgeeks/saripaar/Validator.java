@@ -147,7 +147,6 @@ public class Validator {
     private Handler mViewValidatedActionHandler;
     private ValidationListener mValidationListener;
     private AsyncValidationTask mAsyncValidationTask;
-    private boolean isValidateHiddenField;
 
     /**
      * Constructor.
@@ -752,35 +751,32 @@ public class Validator {
             // Validate all the rules for the given view.
             List<Rule> failedRules = null;
             for (int i = 0; i < nRules; i++) {
+                
+                Pair<Rule, ViewDataAdapter> ruleAdapterPair = ruleAdapterPairs.get(i);
+                Rule failedRule = validateViewWithRule(
+                        view, ruleAdapterPair.first, ruleAdapterPair.second);
+                boolean isLastRuleForView = nRules == i + 1;
 
-                // Validate only views that are visible and enabled
-                if (isValidateHiddenField) {
-                    Pair<Rule, ViewDataAdapter> ruleAdapterPair = ruleAdapterPairs.get(i);
-                    Rule failedRule = validateViewWithRule(
-                            view, ruleAdapterPair.first, ruleAdapterPair.second);
-                    boolean isLastRuleForView = nRules == i + 1;
-
-                    if (failedRule != null) {
-                        if (addErrorToReport) {
-                            if (failedRules == null) {
-                                failedRules = new ArrayList<Rule>();
-                                validationErrors.add(new ValidationError(view, failedRules));
-                            }
-                            failedRules.add(failedRule);
-                        } else {
-                            hasMoreErrors = true;
+                if (failedRule != null) {   
+                    if (addErrorToReport) {
+                        if (failedRules == null) {
+                            failedRules = new ArrayList<Rule>();
+                            validationErrors.add(new ValidationError(view, failedRules));
                         }
-
-                        if (Mode.IMMEDIATE.equals(validationMode) && isLastRuleForView) {
-                            break validation;
-                        }
+                        failedRules.add(failedRule);
+                    } else {
+                        hasMoreErrors = true;
                     }
 
-                    // Don't add reports for subsequent views
-                    if (view.equals(targetView) && isLastRuleForView) {
-                        addErrorToReport = false;
+                    if (Mode.IMMEDIATE.equals(validationMode) && isLastRuleForView) {
+                        break validation;
                     }
                 }
+
+                // Don't add reports for subsequent views
+                if (view.equals(targetView) && isLastRuleForView) {
+                    addErrorToReport = false;
+                }                
             }
 
             // Callback if a view passes all rules
@@ -792,14 +788,6 @@ public class Validator {
         }
 
         return new ValidationReport(validationErrors, hasMoreErrors);
-    }
-
-    public boolean isValidateHiddenField() {
-        return isValidateHiddenField;
-    }
-
-    public void setValidateHiddenField(boolean validateHiddenField) {
-        isValidateHiddenField = validateHiddenField;
     }
 
     private Rule validateViewWithRule(final View view, final Rule rule,
